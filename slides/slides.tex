@@ -3,7 +3,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{url}
 \usepackage{hyperref}
-\usepackage{minted}
+%\usepackage{minted}
 %\usepackage{algorithm2e}
 %\usemintedstyle{tango}
 \usepackage{xcolor}
@@ -76,7 +76,7 @@
     \end{exampleblock}
     \vspace{-0.25cm}
     \begin{figure}
-      \includegraphics[width=7cm]{rc/autoencoder}
+      \includegraphics[height=4.5cm]{rc/autoencoder}
     \end{figure}
 
   \end{frame}
@@ -139,7 +139,7 @@
     Using empirical mean over a set of i.i.d. data samples:
     \vspace{0cm}
     \begin{equation*}
-      \underset{\boldsymbol{\phi},\boldsymbol{\theta}}{\text{maximize}} \; \sum_i \log p_{\boldsymbol{\theta}}(\mathbf{x}_i|\mathbf{z}_i = \mathbf{f}_{\boldsymbol{\phi}}(\mathbf{x}_i))
+      \underset{\boldsymbol{\phi},\boldsymbol{\theta}}{\text{maximize}} \; \sum_i \log p_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}|\mathbf{z}^{(i)} = \mathbf{f}_{\boldsymbol{\phi}}(\mathbf{x}^{(i)}))
     \end{equation*}
 
     equivalent to:
@@ -243,13 +243,13 @@
     
   \end{frame}
 
-  \begin{frame}{Let's code!}
+  \begin{frame}{Let's code! (1)}
 
     % AE classique avec une/plusieurs couches
-    % Entraîner (sur MNIST ?) avec différents loss (MSE, cross-entropy)
+    % Entraîner sur MNIST avec différents loss (MSE, cross-entropy)
     % Éventuellement convolutif
 
-    % Observer l'espace latent via t-SNE
+    % Observer l'espace latent via t-SNE (comparer avec t-SNE sur MNIST brut)
     
   \end{frame}
 
@@ -258,12 +258,6 @@
     Problem: even a single continuous latent variable can remember the entire training set (one real number per sample).
 
     The latent space is not continuous.
-
-  \end{frame}
-
-  \begin{frame}{Let's code!}
-    
-    % Mettre en évidence l'overfitting avec un exemple
 
   \end{frame}
 
@@ -285,10 +279,15 @@
     
     Limitation of standard AE: the latent space has \emph{no structure} and may not be continuous; we cannot explore it nor sample from it.
 
-    \begin{figure}
-      \includegraphics[width=5cm]{rc/ae-latent}
-      \includegraphics[width=5cm]{rc/vae-latent}
-    \end{figure}
+    \begin{columns}[T,onlytextwidth]
+      \column{0.5\textwidth}
+      \centering
+      \includegraphics[width=0.8\textwidth]{rc/ae-latent}
+
+      \column{0.5\textwidth}
+      \centering
+      \includegraphics[width=0.8\textwidth]{rc/vae-latent}
+    \end{columns}
 
     Example latent space figures, examples with MNIST, faces, music styles...
 
@@ -301,7 +300,7 @@
       \column{0.7\textwidth}
       \begin{block}{Probabilistic setting}
         \small{
-        Generative model $p_{\boldsymbol{\theta}}(\mathbf{x}, \mathbf{z})$
+        Generative model $p_{\boldsymbol{\theta}}(\mathbf{x}, \mathbf{z})$:
         \begin{enumerate}
           \item $\mathbf{z}$ sampled from $p_{\boldsymbol{\theta}}(\mathbf{z})$ (prior)
           \item $p_{\boldsymbol{\theta}}(\mathbf{x}|\mathbf{z})$ (likelihood/\emph{probabilistic decoder})
@@ -319,6 +318,14 @@
     Stochastic gradient variational Bayes (SGVB) \cite{Kingma2014} is an efficient method to estimate the parameters in case of intractable likelihood/posterior and large datasets (as in DL).
 
     % Lien vers le blog VAE, utiliser des images
+
+  \end{frame}
+
+  \begin{frame}{VAE: the reparameterization trick}
+
+    \begin{figure}
+      \includegraphics[width=7cm]{rc/vae}
+    \end{figure}
 
   \end{frame}
 
@@ -356,7 +363,7 @@
       To sample from $q_{\boldsymbol{\phi}}(\mathbf{z}|\mathbf{x})$, we use the reparameterization $\mathbf{z} = f_{\boldsymbol{\phi}}(\mathbf{x}, \epsilon) = \boldsymbol{\mu} + \boldsymbol{\sigma} \cdot \boldsymbol{\epsilon}$ where $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$
     \end{block}
 
-    \small{For a given $\mathbf{x}^{(i)}$, and using 1-sample Mont-Carlo estimation, the ELBO becomes:}
+    \small{For a given $\mathbf{x}^{(i)}$, and using 1-sample Monte-Carlo estimation, the ELBO becomes:}
     \vspace{0cm}
     \begin{multline*}
       \frac{1}{2} \sum_j \left(1 + \log (\boldsymbol{\sigma}^{(i)}_j)^2 - \boldsymbol{\mu}^{(i)}_j - (\boldsymbol{\sigma}^{(i)}_j)^2 \right) + \log p_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}|\mathbf{z}^{(i)})\\
@@ -368,16 +375,18 @@
   \begin{frame}{VAE: the reparameterization trick}
 
     \begin{figure}
-      \includegraphics[width=9cm]{rc/vae}\\
       \includegraphics[width=9cm]{rc/vae-reparameterization}
     \end{figure}
     
   \end{frame}
 
-  \begin{frame}{Let's code!}
+  \begin{frame}{Let's code! (2)}
 
-    % VAE
-    % Observer l'espace latent via t-SNE
+    % VAE avec une/plusieurs couches
+    % Entraîner sur MNIST avec différents loss (MSE, cross-entropy)
+    % Éventuellement convolutif
+
+    % Observer l'espace latent via t-SNE (comparer avec AE)
     
   \end{frame}
 

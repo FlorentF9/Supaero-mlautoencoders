@@ -3,11 +3,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{url}
 \usepackage{hyperref}
-%\usepackage{minted}
-%\usepackage{algorithm2e}
-%\usemintedstyle{tango}
 \usepackage{xcolor}
-%\usepackage[french]{babel}
 \usepackage{appendixnumberbeamer}
 \usepackage{amsmath}
 \usepackage{bm}
@@ -16,8 +12,6 @@
           numbering=fraction,
           progressbar=none,
           background=light]{metropolis}
-%\setsansfont[BoldFont={Fira Sans}]{Fira Sans Light}
-%\setsansfont[BoldFont={Fira Sans SemiBold}]{Fira Sans Book}
 \usefonttheme[onlymath]{serif}
 
 \title{From PCA to Autoencoders}
@@ -30,9 +24,6 @@
 }
 \institute{\vfill\hfill
 \includegraphics[height=1.75cm]{./rc/logo_supaero}}
-
-% \newminted{shell}{fontsize=\scriptsize,gobble=4} 
-% \newminted{python}{fontsize=\scriptsize,gobble=4,linenos,baselinestretch=0.7}
 
 \begin{document}
 
@@ -52,6 +43,10 @@
 
   \begin{frame}{Motivations}
 
+    Do better than linear dimensionality techniques (PCA)
+    Using neural networks.
+    Handle very-high-dimensional data (i.e. $d$ = 1k-1M)
+    Scale linearly with the size of data.
     \cite{Hinton2006}
     
   \end{frame}
@@ -211,28 +206,23 @@
   \end{frame}
 
   %%%
-  \section{Non-linear autoencoders}
+  \section{Real-life autoencoders}
   %%%
 
   %
   \subsection{Non-linear and deep autoencoders}
   %
 
-  \begin{frame}{Non-linear autoencoders}
+  \begin{frame}{Non-linear and deep autoencoders}
 
-    Non-linearity: sigmoid, tanh, ReLU\dots
+    \begin{figure}
+      \includegraphics[width=\textwidth]{rc/deep-autoencoder}
+    \end{figure}
 
-    Several layers
+    Trained end-to-end with backprop. Layer-wise pretraining \cite{Hinton2006} is in fact not necessary \small{(thanks to ReLU, better optimization and regularization)}.
 
-    Not equivalent to PCA! (see paper AA-PCA)
+    $\blacktriangleright$ Not equivalent to PCA! (see paper AA-PCA)
 
-  \end{frame}
-
-  \begin{frame}{Deep autoencoders}
-
-    Layer-wise pretraining: \cite{Hinton2006}
-    In fact, not necessary (source?).
-    
   \end{frame}
 
   %
@@ -294,38 +284,39 @@
   \end{frame}
 
   \begin{frame}{Variational autoencoders (VAE)}
+
+    \metroset{block=fill}
     
     \begin{columns}[T,onlytextwidth]
 
       \column{0.7\textwidth}
       \begin{block}{Probabilistic setting}
-        \small{
         Generative model $p_{\boldsymbol{\theta}}(\mathbf{x}, \mathbf{z})$:
         \begin{enumerate}
-          \item $\mathbf{z}$ sampled from $p_{\boldsymbol{\theta}}(\mathbf{z})$ (prior)
-          \item $p_{\boldsymbol{\theta}}(\mathbf{x}|\mathbf{z})$ (likelihood/\emph{probabilistic decoder})
+          \item $\mathbf{z}$ is sampled from the \alert{prior} $p_{\boldsymbol{\theta}}(\mathbf{z})$
+          \item $\mathbf{x}$ is generated with \alert{likelihood} $p_{\boldsymbol{\theta}}(\mathbf{x}|\mathbf{z})$ (\emph{probabilistic decoder})
         \end{enumerate}
-        Recognition model:\\
-        $q_{\boldsymbol{\phi}}(\mathbf{z}|\mathbf{x})$ (approximate posterior/\emph{probabilistic encoder})
-        }
       \end{block}
 
       \column{0.3\textwidth}
       \includegraphics[width=\textwidth]{rc/vae-gen}
       
     \end{columns}
+    \vspace{0.5cm}
+    \textbf{Problem:} $\boldsymbol{\theta}$ is a NN, so $p_{\boldsymbol{\theta}}(\mathbf{x})$ and $p_{\boldsymbol{\theta}}(\mathbf{z}|\mathbf{x})$ are intractable.
     
-    Stochastic gradient variational Bayes (SGVB) \cite{Kingma2014} is an efficient method to estimate the parameters in case of intractable likelihood/posterior and large datasets (as in DL).
-
-    % Lien vers le blog VAE, utiliser des images
+    $\blacktriangleright$ Stochastic Gradient Variational Bayes (SGVB) \cite{Kingma2014} is an efficient estimation method in case of intractable marginal likelihood/posterior and large datasets.
 
   \end{frame}
 
-  \begin{frame}{VAE: the reparameterization trick}
+  \begin{frame}{Variational autoencoders (VAE)}
 
     \begin{figure}
       \includegraphics[width=7cm]{rc/vae}
     \end{figure}
+
+    Recognition model $\rightarrow$ \alert{approximate posterior} $q_{\boldsymbol{\phi}}(\mathbf{z}|\mathbf{x})$\\
+    (\emph{probabilistic encoder})
 
   \end{frame}
 
@@ -394,30 +385,27 @@
   \section{Applications}
   %%%
 
-  \begin{frame}{Feature extraction}
+  \begin{frame}{Dimensionality reduction and Feature extraction}
 
-    Dimensionality reduction, useful features
+    Autoencoders can extract useful low-dimensional representations from high-dimensional data. They can be used as:
 
-    Pre-processing pour d'autres algos (regress, classif, clustering)
-    
-  \end{frame}
-
-  \begin{frame}{Unsupervised pretraining for supervised learning}
-    
-    Unsupervised pretraining -> supervised finetuning
-
-    \cite{Erhan2010}
-
-  \end{frame}
-
-  \begin{frame}{Visualization}
+    \begin{itemize}
+      \item a pre-processing step for any other ML algorithm (clustering, supervised classification or regression)
+      \item an unsupervised pre-training prodecure for supervised deep neural networks (e.g. layer-wise pre-training) $\rightarrow$ See \cite{Hinton2006}, \cite{Erhan2010}, \cite{Vincent2010}.
+    \end{itemize}
     
   \end{frame}
 
   \begin{frame}{Data compression}
     
-    Dimensionality reduction
-    Data-specific, lossy compression.
+    Autoencoders can be used as a compression algorithm, but it is:
+
+    \begin{itemize}
+      \item lossy
+      \item data-specific
+    \end{itemize}
+
+    Not commonly used in practice\dots
 
   \end{frame}  
 
@@ -434,7 +422,7 @@
 
   \begin{frame}{Anomaly detection}
     
-    When the input is different from the training data distribution (e.g. an outlier), the autoencoder will produce a large reconstruction error. This error can be used to \alert{score anomalies} \cite{Malhotra2016}.
+    When the input differs from the training data distribution (e.g. an outlier), the autoencoder will produce a large reconstruction error. This error can be used to \alert{score anomalies} \cite{Malhotra2016}.
 
     \begin{figure}
       \includegraphics[width=10cm]{rc/anomaly-detection}

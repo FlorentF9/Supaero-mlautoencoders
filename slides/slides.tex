@@ -31,23 +31,50 @@
 
   \begin{frame}{Table of contents}
     \setbeamertemplate{section in toc}[sections numbered]
-    %\begin{small}
-      %\vspace{0.5cm}
+    \begin{small}
+      \vspace{0.5cm}
       \tableofcontents%[hideallsubsections]
-    %\end{small}
+    \end{small}
   \end{frame}
 
   %%%
   \section{Introduction to autoencoders}
   %%%
 
+  %
+  \subsection{Motivations}
+  %
+
   \begin{frame}{Motivations}
 
-    Do better than linear dimensionality techniques (PCA)
-    Using neural networks.
-    Handle very-high-dimensional data (i.e. $d$ = 1k-1M)
-    Scale linearly with the size of data.
-    \cite{Hinton2006}
+    \begin{block}{Where we are}
+      \begin{itemize}
+        \item Complex and high-dimensional data (i.e. $d \sim [10^3, 10^6[$)
+        \item "Big data" (i.e. $N \sim [10^5, 10^9[$)
+        \item No labels (unsupervised learning)
+      \end{itemize}
+    \end{block}
+
+    \begin{block}{What we have}
+      \begin{itemize}
+        \item Linear dimensionality reduction techniques (e.g. PCA) $\rightarrow$ cannot learn complex transformations
+        \item Non-linear techniques, e.g. t-SNE $\rightarrow$ not scalable, time complexity is $\mathcal{O}(d \cdot N^2)$, or $\mathcal{O}(d \cdot N\log N)$ with Barnes-Hut (but limited to output dimensionality $\leq 3$)
+      \end{itemize}
+    \end{block}
+
+  \end{frame}
+
+  \begin{frame}{Motivations}
+    
+    \metroset{block=fill}
+
+    \begin{block}{So why not use (deep) neural networks?}
+      \begin{itemize}
+        \item Can learn complex transformations
+        \item Comfortable in very-high-dimensional spaces
+        \item Scale linearly with the size of data
+      \end{itemize}
+    \end{block}
     
   \end{frame}
 
@@ -172,7 +199,7 @@
   \end{frame}
 
   %%%
-  \section{Neurons can learn principal components}
+  \section{Can neurons learn principal components?}
   %%%
 
   \begin{frame}{Hebb's Learning Rule}
@@ -219,21 +246,46 @@
       \includegraphics[width=\textwidth]{rc/deep-autoencoder}
     \end{figure}
 
-    Trained end-to-end with backprop. Layer-wise pretraining \cite{Hinton2006} is in fact not necessary \small{(thanks to ReLU, better optimization and regularization)}.
+    Trained end-to-end with backprop. Layer-wise pre-training \cite{Hinton2006} is in fact not necessary \small{(thanks to ReLU, better optimization, etc.)}.
 
     $\blacktriangleright$ Not equivalent to PCA! (see paper AA-PCA)
 
   \end{frame}
 
   %
-  \subsection{Different types of regularization}
+  \subsection{Different types of regularizations}
   %
 
   \begin{frame}{Undercomplete or overcomplete}
+
+    Let $d$ be the input dimension and $l$ the code dimension.
+    \vspace{0.5cm}
+    \begin{columns}[T,onlytextwidth]
+      \column{0.5\textwidth}
+      \centering
+      $l < d$: \textbf{undercomplete}
+      \begin{figure}
+        \includegraphics[height=3cm]{rc/entonnoirs1}
+      \end{figure}
+      \column{0.5\textwidth}
+      \centering
+      $l \geq d$: \textbf{overcomplete}
+      \begin{figure}
+        \includegraphics[height=3cm]{rc/entonnoirs2}
+      \end{figure}
+      
+    \end{columns}
+    \vspace{0.5cm}
+    Having the autoencoder encode the data to a lower dimension (in general $l << d$), forces it to compress the data and learn an efficient representation and is a \alert{form of regularization}.
     
   \end{frame}
 
   \begin{frame}{Let's code! (1)}
+
+    \centering
+    \includegraphics[width=0.5\textwidth]{rc/colab}\\
+    \vspace{1cm}
+    \includegraphics[width=0.25\textwidth]{rc/jupyter}
 
     % AE classique avec une/plusieurs couches
     % Entraîner sur MNIST avec différents loss (MSE, cross-entropy)
@@ -245,19 +297,47 @@
 
   \begin{frame}{The danger of overfitting}
     
-    Problem: even a single continuous latent variable can remember the entire training set (one real number per sample).
+    \textbf{Problems:} overcomplete AE will not learn useful representations; and even undercomplete AE with a \emph{single continuous latent variable} can remember an entire training set (one real number per sample).
 
-    The latent space is not continuous.
+    \begin{figure}
+      \includegraphics[width=0.8\textwidth]{rc/ae-real-numbers}
+    \end{figure}
+    
+    \textbf{Solution:} adding \alert{constraints} to the latent space by using different types of \alert{regularization}! 
 
   \end{frame}
 
   \begin{frame}{Sparse autoencoders}
+
+    \metroset{block=fill}
+
+    \begin{block}{Principle}
+      \small{
+      Sparse autoencoders can have more latent units than input units, but \alert{only a few are allowed to activate together}:
+      \vspace{-0.25cm}
+      \begin{itemize}
+        \item a fixed proportion (e.g. 5\%) using a KL-divergence penalty
+        \item a fixed number $k$
+        \item using a L1 penalty
+      \end{itemize}
+      }
+    \end{block}
+    
+    \centering
+    \includegraphics[width=4.5cm]{rc/sparse-autoencoder}
     
   \end{frame}
 
   \begin{frame}{Denoising autoencoders}
 
-    \cite{Vincent2010}
+    \metroset{block=fill}
+
+    \begin{block}{Principle}
+      Denoising autoencoders \cite{Vincent2010} are trained to reconstruct \alert{corrupted} versions of the input. Corruption can be achieved by adding noise or randomly turning off input units. Usually, they have a single hidden layer with a non-linearity.
+    \end{block}
+
+    \centering
+    \includegraphics[width=7cm]{rc/denoising-autoencoder}
     
   \end{frame}
 
@@ -279,13 +359,31 @@
       \includegraphics[width=0.8\textwidth]{rc/vae-latent}
     \end{columns}
 
-    Example latent space figures, examples with MNIST, faces, music styles...
+  \end{frame}
+
+  \begin{frame}{Motivations}
+
+    \begin{columns}[T,onlytextwidth]
+      \column{0.5\textwidth}
+      \centering
+      \includegraphics[height=4.25cm,width=\textwidth]{rc/vae-mnist}\\
+
+      \column{0.4\textwidth}
+      \centering
+      \includegraphics[height=4.25cm,width=\textwidth]{rc/vae-faces}\\
+    \end{columns}
+    
+    \centering
+    \includegraphics[width=0.7\textwidth]{rc/vae-faces-smile}\\
+    \tiny{\url{jmetzen.github.io/2015-11-27/vae.html}, \url{ermongroup.github.io/cs228-notes/extras/vae}, \url{github.com/davidsandberg/facenet}}
 
   \end{frame}
 
   \begin{frame}{Variational autoencoders (VAE)}
 
     \metroset{block=fill}
+
+    VAEs are \alert{latent-variable probabilistic models}.
     
     \begin{columns}[T,onlytextwidth]
 
@@ -298,8 +396,10 @@
         \end{enumerate}
       \end{block}
 
-      \column{0.3\textwidth}
-      \includegraphics[width=\textwidth]{rc/vae-gen}
+      \column{0.29\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{rc/vae-gen}\\
+      \tiny{Kingma \& Welling 2014 \cite{Kingma2014}}
       
     \end{columns}
     \vspace{0.5cm}
@@ -357,7 +457,7 @@
     \small{For a given $\mathbf{x}^{(i)}$, and using 1-sample Monte-Carlo estimation, the ELBO becomes:}
     \vspace{0cm}
     \begin{multline*}
-      \frac{1}{2} \sum_j \left(1 + \log (\boldsymbol{\sigma}^{(i)}_j)^2 - \boldsymbol{\mu}^{(i)}_j - (\boldsymbol{\sigma}^{(i)}_j)^2 \right) + \log p_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}|\mathbf{z}^{(i)})\\
+      \frac{1}{2} \sum_j \left(1 + \log (\boldsymbol{\sigma}^{(i)}_j)^2 - (\boldsymbol{\mu}^{(i)}_j)^2 - (\boldsymbol{\sigma}^{(i)}_j)^2 \right) + \log p_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}|\mathbf{z}^{(i)})\\
       \text{ where } \mathbf{z}^{(i)} = \boldsymbol{\mu}^{(i)} + \boldsymbol{\sigma}^{(i)} \cdot \boldsymbol{\epsilon}
     \end{multline*}
 
@@ -372,6 +472,11 @@
   \end{frame}
 
   \begin{frame}{Let's code! (2)}
+
+    \centering
+    \includegraphics[width=0.5\textwidth]{rc/colab}\\
+    \vspace{1cm}
+    \includegraphics[width=0.25\textwidth]{rc/jupyter}
 
     % VAE avec une/plusieurs couches
     % Entraîner sur MNIST avec différents loss (MSE, cross-entropy)
@@ -390,19 +495,20 @@
     Autoencoders can extract useful low-dimensional representations from high-dimensional data. They can be used as:
 
     \begin{itemize}
-      \item a pre-processing step for any other ML algorithm (clustering, supervised classification or regression)
-      \item an unsupervised pre-training prodecure for supervised deep neural networks (e.g. layer-wise pre-training) $\rightarrow$ See \cite{Hinton2006}, \cite{Erhan2010}, \cite{Vincent2010}.
+      \item[$\blacktriangleright$] a pre-processing step for any other ML algorithm (clustering, supervised classification or regression)
+      \item[$\blacktriangleright$] an unsupervised pre-training prodecure for supervised deep neural networks (e.g. stacked AE pre-training)\\
+      $\rightarrow$ see \cite{Hinton2006}, \cite{Erhan2010}, \cite{Vincent2010}
     \end{itemize}
     
   \end{frame}
 
   \begin{frame}{Data compression}
     
-    Autoencoders can be used as a compression algorithm, but it is:
+    Autoencoders can be used as a compression algorithm:
 
     \begin{itemize}
-      \item lossy
-      \item data-specific
+      \item[$\blacktriangleright$] \textbf{lossy}
+      \item[$\blacktriangleright$] \textbf{data-specific}
     \end{itemize}
 
     Not commonly used in practice\dots
@@ -414,15 +520,15 @@
     The decoder model can be used to \alert{generate new data samples}:
 
     \begin{itemize}
-      \item Deterministic AEs: adding noise, interpolating or extrapolating in latent space \cite{Devries2017}
-      \item Generative models (VAE, GAN)
+      \item[$\blacktriangleright$] Deterministic AEs: adding noise, interpolating or extrapolating in latent space \cite{Devries2017}
+      \item[$\blacktriangleright$] Generative models (VAE, GAN)
     \end{itemize}
 
   \end{frame}
 
   \begin{frame}{Anomaly detection}
     
-    When the input differs from the training data distribution (e.g. an outlier), the autoencoder will produce a large reconstruction error. This error can be used to \alert{score anomalies} \cite{Malhotra2016}.
+    When the input differs from the training distribution (e.g. an outlier), the model will produce a large reconstruction error. This error can be used to \alert{score anomalies} \cite{Malhotra2016}.
 
     \begin{figure}
       \includegraphics[width=10cm]{rc/anomaly-detection}

@@ -1,4 +1,4 @@
-\documentclass{beamer}
+\documentclass[handout]{beamer}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{url}
@@ -16,8 +16,11 @@
 
 \title{From PCA to Autoencoders}
 \subtitle{Unsupervised Representation Learning}
-\date{17 décembre 2019}
-\author{\textsc{Florent Forest}\vspace{0.2cm}\\
+\date{December 17, 2019}
+\author{\textsc{Florent Forest}\\
+\scriptsize{PhD student in Data science \& Machine learning\\
+Safran Aircraft Engines --- Université Paris 13}
+\vspace{0.2cm}\\
 \includegraphics[height=0.35cm]{./rc/e-mail-envelope-blue}\;\scriptsize{\href{mailto:forest@lipn.univ-paris13.fr}{forest@lipn.univ-paris13.fr}}\\
 \includegraphics[height=0.35cm]{./rc/grid-world-blue}\;\scriptsize{\href{http://florentfo.rest}{http://florentfo.rest}}\\
 \includegraphics[height=0.35cm]{./rc/github-logo-blue}\;\scriptsize{\href{https://github.com/FlorentF9}{FlorentF9}}\\
@@ -50,15 +53,17 @@
     \begin{block}{Where we are}
       \begin{itemize}
         \item Complex and high-dimensional data (i.e. $d \sim [10^3, 10^6[$)
-        \item "Big data" (i.e. $N \sim [10^5, 10^9[$)
+        \item "Big Data" (i.e. $N \sim [10^5, 10^9[$)
         \item No labels (unsupervised learning)
       \end{itemize}
     \end{block}
-
-    \begin{block}{What we have}
+    \pause
+    \begin{block}{What we have seen so far}
       \begin{itemize}
-        \item Linear dimensionality reduction techniques (e.g. PCA) $\rightarrow$ cannot learn complex transformations
-        \item Non-linear techniques, e.g. t-SNE $\rightarrow$ not scalable, time complexity is $\mathcal{O}(d \cdot N^2)$, or $\mathcal{O}(d \cdot N\log N)$ with Barnes-Hut (but limited to output dimensionality $\leq 3$)
+        \item Linear dimensionality reduction techniques (e.g. PCA)\\
+        $\rightarrow$ cannot learn complex transformations
+        \item Non-linear techniques, e.g. t-SNE\\
+        $\rightarrow$ not scalable, time complexity is $\mathcal{O}(d \cdot N^2)$, or $\mathcal{O}(d \cdot N\log N)$ with Barnes-Hut (but limited to output dimension $\leq 3$)
       \end{itemize}
     \end{block}
 
@@ -88,7 +93,7 @@
 
     \begin{exampleblock}{Definition}
       \small{
-      An \alert{autoencoder} is a neural network trained to reconstruct its inputs. It is composed of two parts:
+      An \alert{autoencoder} is a neural network trained to \textbf{reconstruct its inputs}. It is composed of two components:
       \vspace{-0.4cm}
       \begin{enumerate}
         \item an \alert{encoder}, mapping the input to a latent representation ("code") $\mathbf{z} = \mathbf{f}_{\boldsymbol{\phi}}(\mathbf{x})$
@@ -112,8 +117,9 @@
     \end{alertblock}
 
     \vspace{0.5cm}
+    \pause
 
-    \begin{block}{Regularization?}
+    \begin{block}{Regularization?}<2->
       Reducing the size of the \emph{hypothesis set} $\mathcal{H}$ by constraining the space of possible solutions to the optimization problem.
       \vspace{-0.25cm}
       \begin{itemize}
@@ -139,9 +145,10 @@
       \mathbb{I}(X;Z) &= \mathbb{H}(X) - \mathbb{H}(X|Z)\\
                       &= C(X) + \mathbb{E}_{q_{\boldsymbol{\phi}}(X,Z)}\left[\log q_{\boldsymbol{\phi}}(X|Z)\right]
     \end{align*}
-
+    \pause
     \small{For any parametric distribution $p_{\boldsymbol{\theta}}(X|Z)$ we have $\mathbb{E}_{q_{\boldsymbol{\phi}}(X,Z)}\left[\log p_{\boldsymbol{\theta}}(X|Z)\right] \leq \mathbb{E}_{q_{\boldsymbol{\phi}}(X,Z)}\left[\log q_{\boldsymbol{\phi}}(X|Z)\right]$ (using $D_{KL}(q||p) \geq 0$).}
-
+    \pause
+    \vspace{0.5cm}
     \begin{block}{Task: maximize a lower bound on $\mathbb{I}(X;Z)$}
       \begin{equation*}
         \underset{\boldsymbol{\phi},\boldsymbol{\theta}}{\text{maximize}} \; \mathbb{E}_{q_{\boldsymbol{\phi}}(X,Z)}\left[\log p_{\boldsymbol{\theta}}(X|Z)\right]
@@ -152,13 +159,13 @@
 
   \begin{frame}{Loss function for deterministic autoencoders}
 
-    We consider \alert{deterministic} mappings $Z = \mathbf{f}_{\boldsymbol{\phi}}(X)$ (or $q_{\boldsymbol{\phi}}(Z|X) = \delta(Z - \mathbf{f}_{\boldsymbol{\phi}}(X))$) and $\tilde{X} = \mathbf{g}_{\boldsymbol{\theta}}(\mathbf{f}_{\boldsymbol{\phi}}(X))$.
+    We consider \alert{deterministic} mappings $Z = \mathbf{f}_{\boldsymbol{\phi}}(X)$ (i.e. $q_{\boldsymbol{\phi}}(Z|X) = \delta(Z - \mathbf{f}_{\boldsymbol{\phi}}(X))$) and $\tilde{X} = \mathbf{g}_{\boldsymbol{\theta}}(\mathbf{f}_{\boldsymbol{\phi}}(X))$.
     \vspace{0cm}
     \begin{equation*}
       \underset{\boldsymbol{\phi},\boldsymbol{\theta}}{\text{maximize}} \; \mathbb{E}_{q_{\boldsymbol{\phi}}(X)}\left[\log p_{\boldsymbol{\theta}}(X|Z = \mathbf{f}_{\boldsymbol{\phi}}(X))\right]
     \end{equation*}
-
-    Using empirical mean over a set of i.i.d. data samples:
+    \pause
+    Using empirical mean over a set of data samples:
     \vspace{0cm}
     \begin{equation*}
       \underset{\boldsymbol{\phi},\boldsymbol{\theta}}{\text{maximize}} \; \sum_i \log p_{\boldsymbol{\theta}}(\mathbf{x}^{(i)}|\mathbf{z}^{(i)} = \mathbf{f}_{\boldsymbol{\phi}}(\mathbf{x}^{(i)}))
@@ -169,8 +176,8 @@
     \begin{equation*}
       \underset{\boldsymbol{\phi},\boldsymbol{\theta}}{\text{maximize}} \; \sum_i \log p(\mathbf{x}^{(i)}|\tilde{\mathbf{x}}^{(i)} = \mathbf{g}_{\boldsymbol{\theta}}(\mathbf{f}_{\boldsymbol{\phi}}(\mathbf{x}^{(i)})))
     \end{equation*}
-
-    Let us turn this into a minimization the negative sum of individual loss functions $\mathcal{L}(\mathbf{x}|\tilde{\mathbf{x}}) = -\log p(\mathbf{x}|\tilde{\mathbf{x}})$.
+    \pause
+    Let us turn this into a minimization of the negative sum of individual loss functions $\mathcal{L}(\mathbf{x}, \tilde{\mathbf{x}}) = -\log p(\mathbf{x}|\tilde{\mathbf{x}})$.
     
   \end{frame}
 
@@ -179,15 +186,15 @@
     \metroset{block=fill}
 
     The reconstruction $\tilde{\mathbf{x}}$ is the \alert{mean} of a distribution that may have generated $\mathbf{x}$.
-
+    \pause
     \begin{block}{Continuous variables: $\mathbf{x} \in \mathbb{R}^d$}
       \begin{itemize}
         \item Gaussian distribution: $X|\tilde{X} = \tilde{\mathbf{x}} \sim \mathcal{N}(\tilde{\mathbf{x}}, \mathbf{\sigma}^2 \mathbf{I})$
-      \item Loss function: $\mathcal{L}(\mathbf{x}|\tilde{\mathbf{x}}) \propto ||\mathbf{x} - \tilde{\mathbf{x}}||_2^2$      
+      \item Loss function: $\mathcal{L}(\mathbf{x}, \tilde{\mathbf{x}}) \propto ||\mathbf{x} - \tilde{\mathbf{x}}||_2^2$
       \end{itemize}
       $\rightarrow$ \alert{Mean Squared Error (MSE) loss}
     \end{block}
-
+    \pause
     \begin{block}{Binary variables: $\mathbf{x} \in \{0,1\}^d$, or $\mathbf{x} \in [0,1]^d$}
       \begin{itemize}
         \item Bernoulli distribution: $X|\tilde{X} = \tilde{\mathbf{x}} \sim \mathcal{B}(\tilde{\mathbf{x}})$
@@ -199,36 +206,142 @@
   \end{frame}
 
   %%%
-  \section{Can neurons learn principal components?}
+  \section{Links with Principal Component Analysis (PCA)}
   %%%
 
-  \begin{frame}{Hebb's Learning Rule}
+  %
+  \subsection{Can neurons learn principal components?}
+  %
 
-  \end{frame}
+  \begin{frame}{Hebb's learning rule}
 
-  \begin{frame}{Learning PC with Oja's rule}
+    \begin{columns}[T,onlytextwidth]
+      \column{0.7\textwidth}
+      \vspace{0.5cm}
+      Back to 1949 $\rightarrow$ Hebbian learning
+      \column{0.3\textwidth}
+      \includegraphics[height=1.5cm]{rc/delorean}
+    \end{columns}
+    \pause
+    \metroset{block=fill}
 
-    \cite{Becker1991}, \cite{Oja1982}, \cite{Oja1992}
+    \begin{block}{The artificial neuron and Hebb's learning rule \cite{hebb-organization-of-behavior-1949}}
+      \begin{columns}[T,onlytextwidth]
+        \column{0.6\textwidth}
+        \vspace{0.7cm}
+        \centering
+        \includegraphics[]{rc/artificial-neuron}
+
+        \column{0.4\textwidth}
+        \vspace{0.7cm}
+        \centering
+        \small{Weights increase if input and output are correlated.}
+        \begin{equation*}
+          \Delta \mathbf{w}_i = \alpha \mathbf{x}_i y
+        \end{equation*}
+        \begin{equation*}
+          \Delta \mathbf{w} = \alpha \mathbf{x} y = \alpha \mathbf{x} \mathbf{x}^T \mathbf{w}
+        \end{equation*}
+      \end{columns}
+    \end{block}
     
+    See for example Rosenblatt's \textbf{perceptron} (1958) \cite{Rosenblatt58theperceptron} for an illustration of this learning rule.
+
+  \end{frame}
+
+  \begin{frame}{Learning principal components with Oja's rule}
+
+    \textbf{Problem:} the weights can "explode" with Hebb's rule. A solution is to add a \emph{forgetting term}.
+    \pause
+    \metroset{block=fill}
+
+    \begin{block}{Oja's learning rule \cite{Oja1982}}
+      \begin{equation*}
+        \Delta \mathbf{w} = \alpha (\mathbf{x} y - y^2 \mathbf{w})
+      \end{equation*}
+    \end{block}
+    \pause
+    \scriptsize{
+    We can show that this rule leads to \emph{principal components} \cite{Becker1991,Oja1992}: 
+    \vspace{0cm}
+    \begin{equation*}
+      \Delta \mathbf{w} = \alpha (\mathbf{x} \mathbf{x}^T \mathbf{w} - \mathbf{w}^T \mathbf{x} \mathbf{x}^T \mathbf{w} \mathbf{w})
+    \end{equation*}
+    After convergence, we have:
+    \begin{align*}
+      \mathbb{E}\left[\Delta \mathbf{w}\right] = \alpha (\mathbb{E}\left[\mathbf{x} \mathbf{x}^T\right] \mathbf{w} - \mathbf{w}^T \mathbb{E}\left[\mathbf{x} \mathbf{x}^T\right] \mathbf{w} \mathbf{w}) = \alpha (\mathbf{C} \mathbf{w} - \mathbf{w}^T \mathbf{C} \mathbf{w} \mathbf{w}) = 0
+    \end{align*}
+    
+    where $\mathbf{C} = \mathbb{E}\left[\mathbf{x} \mathbf{x}^T\right]$ is the covariance matrix. Finally:
+    \vspace{0cm}
+    \begin{equation*}
+      \mathbf{C} \mathbf{w} = \mathbf{w}^T \mathbf{C} \mathbf{w} \mathbf{w} = \lambda \mathbf{w}
+    \end{equation*}
+
+    Thus, $\mathbf{w}$ is an eigenvector of the covariance matrix, a.k.a. a \textbf{principal component}.
+    }
+
   \end{frame}
 
   %%%
-  \section{Linear autoencoders}
+  \subsection{Linear autoencoders}
   %%%
 
   \begin{frame}{Definition}
 
     \begin{figure}
-      \includegraphics[width=7cm]{rc/linear-autoencoder}
+      \includegraphics[width=5.5cm]{rc/linear-autoencoder}
     \end{figure}
+    \vspace{-0.25cm}
+    \begin{equation*}
+      \tilde{\mathbf{x}} = \mathbf{W}_d \left(\mathbf{W}_e \mathbf{x} + \mathbf{b}_e\right) + \mathbf{b}_d
+    \end{equation*}
+    \pause
+    Ignoring the biases, the MSE loss becomes:
+    \vspace{0cm}
+    \begin{align*}
+      \text{MSE} &= \sum_i ||\mathbf{x}^{(i)} - \tilde{\mathbf{x}}^{(i)}||_2^2 = \sum_i ||\mathbf{x}^{(i)} - \mathbf{W}_d \mathbf{W}_e \mathbf{x}^{(i)}||_2^2 \\
+                 &= ||\mathbf{X} - \mathbf{X} \mathbf{W}_d \mathbf{W}_e||_F^2
+    \end{align*}
     
   \end{frame}
 
-  \begin{frame}{Similarity with PCA}
+  \begin{frame}{Equivalence to PCA}
 
-    Show equivalence to PCA
+    \begin{columns}[T,onlytextwidth]
+      \column{0.5\textwidth}
+      \centering \textbf{PCA}
+      \begin{align*}
+        \underset{\mathbf{U} \in \mathbb{R}^{d \times r}}{\text{minimize}} &\; ||\mathbf{X} - \mathbf{X} \mathbf{U} \mathbf{U}^T||_F^2 \\
+        \text{subject to} &\; \mathbf{U}^T \mathbf{U} = \mathbf{I}
+      \end{align*}
+      \pause
+      \column{0.5\textwidth}
+      \centering \textbf{Linear AE}
+      \begin{equation*}
+        \underset{\mathbf{W}_e \in \mathbb{R}^{l \times d}, \mathbf{W}_d \in \mathbb{R}^{d \times l}}{\text{minimize}} \; ||\mathbf{X} - \mathbf{X} \mathbf{W}_d \mathbf{W}_e||_F^2
+      \end{equation*}
+      {\scriptsize one can show that we must have $\mathbf{W}_e = \mathbf{W}_d^{\dagger}$ (pseudo-inverse), then:}
+      \begin{equation*}
+        \underset{\mathbf{W} \in \mathbb{R}^{d \times l}}{\text{minimize}} \; ||\mathbf{X} - \mathbf{X} \mathbf{W} \mathbf{W}^{\dagger}||_F^2
+      \end{equation*}
 
-    \cite{Plaut2018}
+    \end{columns}
+
+    \vspace{1cm}
+    \pause
+    \centering
+    $\blacktriangleright$ Linear autoencoders are equivalent to PCA\dots\\
+    \alert{without the orthogonality constraint}! \cite{Plaut2018}
+    
+  \end{frame}
+
+  \begin{frame}{Equivalence to PCA}
+
+    \begin{figure}
+      \includegraphics[width=\textwidth]{rc/pca-ae-bases}\\
+      \tiny{\url{https://towardsdatascience.com/understanding-variational-autoencoders-vaes-f70510919f73}}
+    \end{figure}
     
   \end{frame}
 
@@ -245,10 +358,13 @@
     \begin{figure}
       \includegraphics[width=\textwidth]{rc/deep-autoencoder}
     \end{figure}
+    
+    \pause
+    \centering
+    $\blacktriangleright$ \alert{Not equivalent to PCA!}
 
-    Trained end-to-end with backprop. Layer-wise pre-training \cite{Hinton2006} is in fact not necessary \small{(thanks to ReLU, better optimization, etc.)}.
-
-    $\blacktriangleright$ Not equivalent to PCA! (see paper AA-PCA)
+    \pause
+    {\small Trained end-to-end with backprop and SGD. Layer-wise pre-training \cite{Hinton2006} is in fact not necessary (thanks to ReLU, better optimization, etc.).}
 
   \end{frame}
 
@@ -259,6 +375,7 @@
   \begin{frame}{Undercomplete or overcomplete}
 
     Let $d$ be the input dimension and $l$ the code dimension.
+    \pause
     \vspace{0.5cm}
     \begin{columns}[T,onlytextwidth]
       \column{0.5\textwidth}
@@ -267,15 +384,16 @@
       \begin{figure}
         \includegraphics[height=3cm]{rc/entonnoirs1}
       \end{figure}
+      \pause
       \column{0.5\textwidth}
       \centering
       $l \geq d$: \textbf{overcomplete}
       \begin{figure}
         \includegraphics[height=3cm]{rc/entonnoirs2}
       \end{figure}
-      
     \end{columns}
     \vspace{0.5cm}
+    \pause
     Having the autoencoder encode the data to a lower dimension (in general $l << d$), forces it to compress the data and learn an efficient representation and is a \alert{form of regularization}.
     
   \end{frame}
@@ -302,7 +420,7 @@
     \begin{figure}
       \includegraphics[width=0.8\textwidth]{rc/ae-real-numbers}
     \end{figure}
-    
+    \pause
     \textbf{Solution:} adding \alert{constraints} to the latent space by using different types of \alert{regularization}! 
 
   \end{frame}
@@ -316,9 +434,9 @@
       Sparse autoencoders can have more latent units than input units, but \alert{only a few are allowed to activate together}:
       \vspace{-0.25cm}
       \begin{itemize}
-        \item a fixed proportion (e.g. 5\%) using a KL-divergence penalty
-        \item a fixed number $k$
-        \item using a L1 penalty
+        \item a fixed proportion (e.g. 5\%) using a KL-divergence penalty \cite{Ng2011}
+        \item a fixed number $k$ \cite{Makhzani2013}
+        \item using a L1 penalty \cite{Arpit2016}
       \end{itemize}
       }
     \end{block}
@@ -347,13 +465,13 @@
 
   \begin{frame}{Motivations}
     
-    Limitation of standard AE: the latent space has \emph{no structure} and may not be continuous; we cannot explore it nor sample from it.
-
+    \textbf{Limitation of standard AE:} the latent space has \emph{no structure} and may not be continuous; it may \emph{overfit}, and we cannot explore it nor \emph{sample} from it.
+    \pause
     \begin{columns}[T,onlytextwidth]
       \column{0.5\textwidth}
       \centering
       \includegraphics[width=0.8\textwidth]{rc/ae-latent}
-
+      \pause
       \column{0.5\textwidth}
       \centering
       \includegraphics[width=0.8\textwidth]{rc/vae-latent}
@@ -384,7 +502,7 @@
     \metroset{block=fill}
 
     VAEs are \alert{latent-variable probabilistic models}.
-    
+    \pause
     \begin{columns}[T,onlytextwidth]
 
       \column{0.7\textwidth}
@@ -403,8 +521,9 @@
       
     \end{columns}
     \vspace{0.5cm}
-    \textbf{Problem:} $\boldsymbol{\theta}$ is a NN, so $p_{\boldsymbol{\theta}}(\mathbf{x})$ and $p_{\boldsymbol{\theta}}(\mathbf{z}|\mathbf{x})$ are intractable.
-    
+    \pause
+    \textbf{Problem:} $\boldsymbol{\theta}$ is a NN, so $p_{\boldsymbol{\theta}}(\mathbf{x})$ and $p_{\boldsymbol{\theta}}(\mathbf{z}|\mathbf{x})$ are intractable.\\
+    \pause
     $\blacktriangleright$ Stochastic Gradient Variational Bayes (SGVB) \cite{Kingma2014} is an efficient estimation method in case of intractable marginal likelihood/posterior and large datasets.
 
   \end{frame}
@@ -430,11 +549,11 @@
         \underset{\boldsymbol{\phi},\boldsymbol{\theta}}{\text{maximize}} \; -D_{KL}\left(q_{\boldsymbol{\phi}}(Z|X)||p_{\boldsymbol{\theta}}(Z)\right) + \mathbb{E}_{q_{\boldsymbol{\phi}}(Z|X)}\left[\log p_{\boldsymbol{\theta}}(X|Z)\right]
       \end{equation*}
     \end{exampleblock}
-
+    \pause
     \begin{alertblock}{Key ideas}
       \begin{itemize}
         \item The second term is a (negative) \alert{reconstruction error} (e.g. MSE or cross-entropy) as in a deterministic AE.
-        \item The first term, a Kullback-Leibler divergence between $q_{\boldsymbol{\phi}}(Z|X)$ and $p_{\boldsymbol{\theta}}(Z)$, acts as a \alert{regularizer} pushing the encoder distribution closer to the prior distribution (typically a gaussian)
+        \item The first term, a Kullback-Leibler divergence between $q_{\boldsymbol{\phi}}(Z|X)$ and $p_{\boldsymbol{\theta}}(Z)$, acts as a \alert{regularizer} pushing the encoder distribution closer to the prior distribution (typically a gaussian).
       \end{itemize}
     \end{alertblock}
 
@@ -449,11 +568,11 @@
       \item $p_{\boldsymbol{\theta}}(\mathbf{z}) = \mathcal{N}(\mathbf{z}; \mathbf{0}, \mathbf{I})$
       \item $q_{\boldsymbol{\phi}}(\mathbf{z}|\mathbf{x}) = \mathcal{N}(\mathbf{z}; \boldsymbol{\mu}, \boldsymbol{\sigma}^2\mathbf{I})$
     \end{itemize}
-
+    \pause
     \begin{block}{The reparameterization trick}
       To sample from $q_{\boldsymbol{\phi}}(\mathbf{z}|\mathbf{x})$, we use the reparameterization $\mathbf{z} = f_{\boldsymbol{\phi}}(\mathbf{x}, \epsilon) = \boldsymbol{\mu} + \boldsymbol{\sigma} \cdot \boldsymbol{\epsilon}$ where $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$
     \end{block}
-
+    \pause
     \small{For a given $\mathbf{x}^{(i)}$, and using 1-sample Monte-Carlo estimation, the ELBO becomes:}
     \vspace{0cm}
     \begin{multline*}
@@ -493,10 +612,10 @@
   \begin{frame}{Dimensionality reduction and Feature extraction}
 
     Autoencoders can extract useful low-dimensional representations from high-dimensional data. They can be used as:
-
+    \pause
     \begin{itemize}
-      \item[$\blacktriangleright$] a pre-processing step for any other ML algorithm (clustering, supervised classification or regression)
-      \item[$\blacktriangleright$] an unsupervised pre-training prodecure for supervised deep neural networks (e.g. stacked AE pre-training)\\
+      \item[$\blacktriangleright$]<2-> a pre-processing step for any other ML algorithm (clustering, supervised classification or regression)
+      \item[$\blacktriangleright$]<3-> an unsupervised pre-training prodecure for supervised deep neural networks (e.g. stacked AE pre-training)\\
       $\rightarrow$ see \cite{Hinton2006}, \cite{Erhan2010}, \cite{Vincent2010}
     \end{itemize}
     
@@ -505,12 +624,13 @@
   \begin{frame}{Data compression}
     
     Autoencoders can be used as a compression algorithm:
-
+    \pause
     \begin{itemize}
       \item[$\blacktriangleright$] \textbf{lossy}
+      \pause 
       \item[$\blacktriangleright$] \textbf{data-specific}
     \end{itemize}
-
+    \pause
     Not commonly used in practice\dots
 
   \end{frame}  
@@ -518,9 +638,10 @@
   \begin{frame}{Data augmentation}
 
     The decoder model can be used to \alert{generate new data samples}:
-
+    \pause
     \begin{itemize}
       \item[$\blacktriangleright$] Deterministic AEs: adding noise, interpolating or extrapolating in latent space \cite{Devries2017}
+      \pause
       \item[$\blacktriangleright$] Generative models (VAE, GAN)
     \end{itemize}
 
@@ -534,6 +655,10 @@
       \includegraphics[width=10cm]{rc/anomaly-detection}
     \end{figure}
 
+  \end{frame}
+
+  \begin{frame}[standout]
+    Questions?
   \end{frame}
 
   %%%
